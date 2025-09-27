@@ -105,14 +105,16 @@
   }
 
   /* ✅ Centrage du QR Code */
-  #qrcode {
-    text-align: center;
-    margin: 20px auto;
-  }
-  #qrcode img {
-    display: inline-block;
-  }
-
+  
+#qrcode {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+#qrcode img {
+  display: block;
+}
 </style>
 </head>
 <body>
