@@ -13,7 +13,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
-  body { font-family: Verdana,sans-serif; margin:10px; max-width:900px; margin:auto; background:#f0f2f5; color:#222;}
+  body {
+    font-family: verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f0f2f5;
+    color: #222;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
   h1,h2 { text-align:center; }
   button { cursor:pointer; font-weight:bold; border:none; border-radius:6px; padding:6px 12px; font-size:1.1em; margin:4px 2px; min-width:36px; min-height:36px; user-select:none; transition: background-color 0.2s ease;}
   button.plusminus { width:48px; border-radius:10px; font-size:1.5em;}
@@ -605,7 +613,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CV manuellement:
-            <input type="number" id="trainCvManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="trainCvManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="trainCvAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -616,7 +624,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CF manuellement:
-            <input type="number" id="trainCfManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="trainCfManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="trainCfAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -638,7 +646,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CV manuellement:
-            <input type="number" id="busCvManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="busCvManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="busCvAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -649,7 +657,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CF manuellement:
-            <input type="number" id="busCfManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="busCfManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="busCfAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -671,7 +679,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CV manuellement:
-            <input type="number" id="vlCvManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="vlCvManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="vlCvAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -682,7 +690,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CF manuellement:
-            <input type="number" id="vlCfManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="vlCfManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="vlCfAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -704,7 +712,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CV manuellement:
-            <input type="number" id="plCvManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="plCvManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="plCvAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -715,7 +723,7 @@
         </div>
         <div>
           <label style="margin-left:15px;">Ajouter CF manuellement:
-            <input type="number" id="plCfManual" class="manual-input" min="0" placeholder="0" />
+            <input type="number" id="plCfManual" class="manual-input" min="0" placeholder="0" inputmode="numeric" pattern="[0-9]*">
             <button id="plCfAddManualBtn" class="add">Ajouter</button>
           </label>
         </div>
@@ -906,27 +914,32 @@
     debounceSave();
   }
 
-  function addManualCv(type){
-    const input = document.getElementById(type+'CvManual');
-    if(!input) return;
-    const val = parseInt(input.value);
-    if(isNaN(val)||val<1) return alert('Veuillez saisir un nombre entier >0.');
-    state.cv[type] += val;
-    input.value = 0;
-    updateUI();
-    debounceSave();
-  }
-  
-  function addManualCf(type){
-  const input = document.getElementById(type + 'CfManual');
+  // CV
+function addManualCv(type){
+  const input = document.getElementById(type+'CvManual');
   if(!input) return;
   const val = parseInt(input.value, 10);
-  if (isNaN(val) || val < 1) return alert('Veuillez saisir un nombre entier > 0.');
-  state.cf[type] += val;   // <-- on touche bien le tableau CF
-  input.value = 0;
-  updateUI();
-  debounceSave();
+  if (!(val > 0)) { alert('Veuillez saisir un nombre entier > 0.'); input.focus(); input.select(); return; }
+  state.cv[type] += val;
+  updateUI(); debounceSave();
+  input.value = '';          // ← vide
+  input.placeholder = '0';   // ← indicatif
+  input.blur();              // (optionnel)
 }
+
+// CF
+function addManualCf(type){
+  const input = document.getElementById(type+'CfManual');
+  if(!input) return;
+  const val = parseInt(input.value, 10);
+  if (!(val > 0)) { alert('Veuillez saisir un nombre entier > 0.'); input.focus(); input.select(); return; }
+  state.cf[type] += val;
+  updateUI(); debounceSave();
+  input.value = '';
+  input.placeholder = '0';
+  input.blur();
+}
+
 
   
   function generateCR(){
@@ -998,7 +1011,24 @@
   if(document.getElementById(t+'CfAddManualBtn'))
     document.getElementById(t+'CfAddManualBtn').addEventListener('click',()=>addManualCf(t));
 });
+['train','bus','vl','pl'].forEach(t=>{
+  ['Cv','Cf'].forEach(kind=>{
+    const inp = document.getElementById(`${t}${kind}Manual`);
+    if(!inp) return;
 
+    inp.addEventListener('focus', () => {
+      if (inp.value === '0') inp.value = '';
+      if (inp.value) inp.select();
+    });
+
+    const btn = document.getElementById(`${t}${kind}AddManualBtn`);
+    if(btn){
+      inp.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter') btn.click();
+      });
+    }
+  });
+});
   // Boutons Compte rendu
   if (document.getElementById('generateBtn'))
     document.getElementById('generateBtn').addEventListener('click', generateCR);
