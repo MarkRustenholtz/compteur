@@ -194,6 +194,7 @@ button.green:hover {
 .icon-fiche i { color: #e74c3c; }
 .icon-visa i { color: #0055A4; }
 .icon-cr i { color: #27ae60; }
+.icon-infosite i { color: #3498db; }
 
 /* En-tête de page unifié */
 .page-header {
@@ -465,6 +466,10 @@ span[id$="Count"] {
 <div id="homePage" class="page active">
   <h1 class="home-title">GENDARMERIE<br> Moyens / Personnes</h1>
   <div class="home-menu">
+   <button class="icon-button icon-infosite" onclick="showPage('infositePage')">
+      <i class="fas fa-map-marker-alt gps-pin"></i>
+      <span>SITE</span>
+    </button>
      <button class="icon-button icon-esr" onclick="showPage('esrPage')">
       <i class="fas fa-user-shield"></i>
       <span>ESR</span>
@@ -488,11 +493,33 @@ span[id$="Count"] {
   </div>
 </div>
 
+<!-- PAGE SITE de Mission -->
+<div id="infositePage" class="page">
+  <div class="page-header">
+    <button class="back-button" onclick="showPage('homePage')">
+      <i class="fas fa-arrow-left"></i> Retour
+    </button>
+    <div class="page-title">Site de mission</div>
+  </div>
 
+  <section class="infosite">
+  <div class="info-row" style="justify-content:center;">
+      <label>Site : 
+        <select id="selectSite">
+          <option value="Breil">Breil</option>
+          <option value="La Turbie">La Turbie</option>
+          <option value="Autre">DSI Tende</option>
+        </select>
+      </label>
+    </div>
+	</section>
+	</div>
+	
 <!-- PAGE ESR -->
 <div id="esrPage" class="page">
   <div class="page-header">
-    <button onclick="showPage('homePage')" class="back-button">⬅ Retour</button>
+    <button class="back-button" onclick="showPage('homePage')">
+      <i class="fas fa-arrow-left"></i> Retour </button>
     <div class="page-title">Infos ESR</div>
   </div>
 
@@ -512,15 +539,6 @@ span[id$="Count"] {
       </label>
       <label>CRT : 
         <input type="text" id="crt" class="info-input" placeholder="Entrez CRT">
-      </label>
-    </div>
-    <div class="info-row" style="justify-content:center;">
-      <label>Site : 
-        <select id="selectSite">
-          <option value="Breil">Breil</option>
-          <option value="La Turbie">La Turbie</option>
-          <option value="Autre">DSI Tende</option>
-        </select>
       </label>
     </div>
     <div style="text-align:center; margin-top:15px;">
@@ -796,7 +814,9 @@ span[id$="Count"] {
 
 <div id="crPage" class="page">
   <div class="page-header">
-    <button onclick="showPage('homePage')" class="back-button">⬅ Retour</button>
+    <button class="back-button" onclick="showPage('homePage')">
+      <i class="fas fa-arrow-left"></i> Retour
+    </button>
     <div class="page-title">Compte rendu</div>
   </div>
   
