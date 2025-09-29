@@ -458,7 +458,41 @@ span[id$="Count"] {
     font-size: 1.4em;
   }
 }
-  
+  .selected-site {
+  margin: 15px auto;
+  padding: 10px 15px;
+  background: #003366;
+  color: white;
+  border-radius: 8px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.site-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.site-btn {
+  padding: 15px;
+  background: #fff;
+  border: 2px solid #003366;
+  border-radius: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #003366;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.site-btn:hover,
+.site-btn:active {
+  background: #003366;
+  color: #fff;
+}
+
 </style>
 </head>
 <body>
@@ -503,15 +537,15 @@ span[id$="Count"] {
   </div>
 
   <section class="infosite">
-  <div class="info-row" style="justify-content:center;">
-      <label>Site : 
-        <select id="selectSite">
-          <option value="Breil">Breil</option>
-          <option value="La Turbie">La Turbie</option>
-          <option value="Autre">DSI Tende</option>
-        </select>
-      </label>
+  <div class="page-content" style="text-align:center;">
+       <h3>Choisir un site</h3>
+	   <div id="selectedSiteDisplay" class="selected-site"></div>
+    <div class="site-list">
+      <button class="site-btn" onclick="selectSite('Breil')">Breil</button>
+      <button class="site-btn" onclick="selectSite('La Turbie')">La Turbie</button>
+      <button class="site-btn" onclick="selectSite('DSI Tende')">DSI Tende</button>
     </div>
+  </div> 
 	</section>
 	</div>
 	
@@ -1042,6 +1076,8 @@ function addManualCf(type){
       if(document.getElementById('qrcode')) document.getElementById('qrcode').innerHTML='';
       localStorage.removeItem('moyensData');
       localStorage.removeItem('siteSelection');
+	   displaySelectedSite();
+       filtrerCompteurs();
     });
 
   // Boutons Infos
@@ -1069,55 +1105,20 @@ function addManualCf(type){
       alert("Infos effacées");
     });
 
-  // Filtrage site
-  function filtrerCompteurs() {
-    const site = document.getElementById("selectSite")?.value;
-    if(!site) return;
-    const trainCard = document.getElementById("trainCard");
-    const busCard = document.getElementById("busCard");
-    const vlCard = document.getElementById("vlCard");
-    const plCard = document.getElementById("plCard");
-
-    if(trainCard) trainCard.style.display = "none";
-    if(busCard) busCard.style.display = "none";
-    if(vlCard) vlCard.style.display = "none";
-    if(plCard) plCard.style.display = "none";
-
-    if(site === "Breil") {
-      if(trainCard) trainCard.style.display = "block";
-      if(busCard) busCard.style.display = "block";
-    } else if(site === "La Turbie") {
-      if(vlCard) vlCard.style.display = "block";
-      if(plCard) plCard.style.display = "block";
-      if(busCard) busCard.style.display = "block";
-    } else {
-      if(trainCard) trainCard.style.display = "block";
-      if(busCard) busCard.style.display = "block";
-      if(vlCard) vlCard.style.display = "block";
-      if(plCard) plCard.style.display = "block";
-    }
-  }
-
-  const savedSite = localStorage.getItem('siteSelection');
-  if (savedSite && document.getElementById("selectSite")) {
-    document.getElementById("selectSite").value = savedSite;
-  }
-
-  if(document.getElementById("selectSite"))
-    document.getElementById("selectSite").addEventListener("change", () => {
-      const site = document.getElementById("selectSite").value;
-      localStorage.setItem('siteSelection', site);
-      filtrerCompteurs();
-    });
-
-  filtrerCompteurs();
-
 })();  
 
 // Fonction de navigation
-function showPage(pageId) {
+  function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
+
+  if (pageId === "vehiculesPage") {
+    filtrerCompteurs(); // applique le filtre à chaque fois qu’on ouvre la page compteurs
+  }
+
+  if (pageId === "homePage") {
+    displaySelectedSite(); // met à jour le bandeau sur l’accueil
+  }
 }
 
 // Service Worker
@@ -1551,7 +1552,68 @@ afficherHistorique();
 
   window._esiVisaData = { allCountries, neverNeed, shortExempt, visaData, biometricExemptions };
   console.debug("ESI+Visa: visaData initialisé pour", allCountries.length, "pays. Voir window._esiVisaData.");
+  
 })();
+  // Filtrage site
+  function filtrerCompteurs() {
+  const site = localStorage.getItem("siteSelection");
+
+  const trainCard = document.getElementById("trainCard");
+  const busCard   = document.getElementById("busCard");
+  const vlCard    = document.getElementById("vlCard");
+  const plCard    = document.getElementById("plCard");
+
+  // cacher tout
+  if (trainCard) trainCard.style.display = "none";
+  if (busCard)   busCard.style.display = "none";
+  if (vlCard)    vlCard.style.display = "none";
+  if (plCard)    plCard.style.display = "none";
+
+ // 🔥 si aucun site choisi → afficher tout
+  if (!site) {
+    if (trainCard) trainCard.style.display = "block";
+    if (busCard)   busCard.style.display = "block";
+    if (vlCard)    vlCard.style.display = "block";
+    if (plCard)    plCard.style.display = "block";
+    return;
+  }
+  
+  // afficher selon site choisi
+  if (site === "Breil") {
+    if (trainCard) trainCard.style.display = "block";
+    if (busCard)   busCard.style.display = "block";
+  } else if (site === "La Turbie") {
+    if (vlCard)    vlCard.style.display = "block";
+    if (plCard)    plCard.style.display = "block";
+    if (busCard)   busCard.style.display = "block";
+  } else { // DSI Tende ou autre
+    if (trainCard) trainCard.style.display = "block";
+    if (busCard)   busCard.style.display = "block";
+    if (vlCard)    vlCard.style.display = "block";
+    if (plCard)    plCard.style.display = "block";
+  }
+}
+
+// appeler au chargement
+filtrerCompteurs();
+// ---- Gestion Site choisi ----
+function selectSite(site) {
+  localStorage.setItem("siteSelection", site);
+  displaySelectedSite();
+   filtrerCompteurs(); // applique le filtre immédiatement
+}
+
+function displaySelectedSite() {
+  const site = localStorage.getItem("siteSelection");
+  const display = document.getElementById("selectedSiteDisplay");
+  if (display) {
+    display.textContent = site ? "📍 Site choisi : " + site : "📍 Aucun site choisi";
+  }
+}
+
+// Afficher au chargement
+document.addEventListener("DOMContentLoaded", displaySelectedSite);
+
 </script>
 
 </body>
