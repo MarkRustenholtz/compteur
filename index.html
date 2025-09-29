@@ -128,7 +128,15 @@ button.green:hover {
   text-align: center;
   padding: 20px;
 }
-
+/* Page d'accueil : occupe tout l'écran sans scroll */
+#homePage {
+  width: 100vw;       /* pleine largeur écran */
+  height: 100vh;      /* pleine hauteur écran */
+  overflow: hidden;   /* empêche scroll horizontal + vertical */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 .home-title {
   color: white;
   background-color: #003366;
