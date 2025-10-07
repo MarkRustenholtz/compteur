@@ -1,4 +1,4 @@
-const CACHE_NAME = "cr-gend-cache-v2";
+const CACHE_NAME = "cr-gend-cache-v3";
 const urlsToCache = [
   "/",               // page principale
   "/index.html",
@@ -42,5 +42,6 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
 
 
