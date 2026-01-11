@@ -301,7 +301,7 @@ textarea {
 }
 select.info-input {
   width: 100%;
-  box-sizing: border-box;
+  max-width: 100%;
 }
 #selectSite {
   font-size: 1em;
@@ -580,9 +580,25 @@ span[id$="Count"] {
 </style>
 </head>
 <body>
-
 <div id="homePage" class="page active">
-  <h1 class="home-title">GENDARMERIE<br> Moyens / Personnes</h1>
+  <h1 class="home-title">
+    <button onclick="window.location.href='../index.html'" style="
+      float:left;
+      margin-right:10px;
+      background:white;
+      color:#007b3c;
+      border:none;
+      border-radius:6px;
+      padding:4px 8px;
+      font-size:0.9em;
+      cursor:pointer;
+      box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    ">
+      🏠 Accueil
+    </button>
+    BORDERFORCE<br> Moyens / Personnes
+  </h1>
+
   <div class="home-menu">
    <button class="icon-button icon-infosite" onclick="showPage('infositePage')">
       <i class="fas fa-map-marker-alt gps-pin"></i>
@@ -691,7 +707,7 @@ span[id$="Count"] {
     <option value="06/5 Nice">06/5 Nice</option>
     <option value="06/6 Nice">06/6 Nice</option>
   </select>
-	</label>
+</label>
   </div>
 
   <div style="text-align:center; margin-top:15px;">
@@ -871,9 +887,20 @@ span[id$="Count"] {
         <option value="">--Sélectionner--</option>
         <option value="Masculin">Masculin</option>
         <option value="Féminin">Féminin</option>
-        <option value="Autre">Autre</option>
+        
       </select>
     </label>
+
+    <div id="blocSituationEsiFiche" style="margin-top:8px;">
+      <label>Situation de l'individu (ESI)
+        <select id="situationEsiFiche">
+          <option value="">Choisir…</option>
+          <option value="INDIVIDU EN SITUATION RÉGULIÈRE">INDIVIDU EN SITUATION RÉGULIÈRE</option>
+          <option value="INDIVIDU EN SITUATION IRRÉGULIÈRE">INDIVIDU EN SITUATION IRRÉGULIÈRE</option>
+        </select>
+      </label>
+    </div>
+
     <label>Nationalité<input type="text"      class="nat-autocomplete" id="nationalite" autocomplete="off"></label>
 
     <label>Date de naissance :</label>
@@ -890,8 +917,17 @@ span[id$="Count"] {
       <input type="time" id="heure" required>
       <input type="date" id="dateIntervention" required>
     </div>
-    <label>Lieu d'interpellation<input type="text" id="lieuInterpellation" autocomplete="off"></label>
-    <label>Suites données<input type="text" id="suitesDonnees" autocomplete="off"></label>
+    <label>Moyen de transport<input type="text" id="lieuInterpellation" autocomplete="off"></label>
+    <label>Suites données :
+      <select id="suitesTypeFiche" onchange="toggleSuitesLieuFiche()">
+        <option value="">Choisir…</option>
+        <option value="TRANSPORT_PAF">TRANSPORT PAF</option>
+        <option value="LAISSE_LIBRE">LAISSÉ LIBRE</option>
+      </select>
+    </label>
+    <input type="text" id="suitesLieuFiche" placeholder="Lieu (ex : Menton)" autocomplete="off" style="display:none;">
+    <!-- On garde l'ID historique pour compatibilité (localStorage / QR) -->
+    <input type="hidden" id="suitesDonnees" />
 
     <h2>Voyage</h2>
     <label>Ville de départ<input type="text" id="villeDepart" autocomplete="off"></label>
@@ -1283,13 +1319,13 @@ if (qrDiv) {
 }
 
 // Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log("✅ Service Worker enregistré", reg))
-      .catch(err => console.log("❌ Erreur Service Worker", err));
-  });
-}
+//if ('serviceWorker' in navigator) {
+ // window.addEventListener('load', () => {
+   // navigator.serviceWorker.register('service-worker.js')
+     // .then(reg => console.log("✅ Service Worker enregistré", reg))
+     // .catch(err => console.log("❌ Erreur Service Worker", err));
+ // });
+//}
 // --------- SCRIPT FICHE ESI ----------
 function setCurrentDateTime() {
     const now = new Date();
@@ -1365,6 +1401,36 @@ function formatDateIntervention(dateStr) {
     return `${jour}/${mois}/${annee}`;
 }
 
+
+
+// --- Suites données (Fiche identité) ---
+function toggleSuitesLieuFiche() {
+  const typeEl = document.getElementById('suitesTypeFiche');
+  const lieuEl = document.getElementById('suitesLieuFiche');
+  if (!typeEl || !lieuEl) return;
+  const type = typeEl.value;
+  lieuEl.style.display = (type === 'TRANSPORT_PAF') ? '' : 'none';
+  if (type !== 'TRANSPORT_PAF') lieuEl.value = '';
+}
+
+// --- Situation ESI (Fiche identité) ---
+function toggleSituationEsiFiche() {
+  const cat = document.getElementById('categorie')?.value || '';
+  const bloc = document.getElementById('blocSituationEsiFiche');
+  if (!bloc) return;
+  bloc.style.display = (cat === 'ESI') ? '' : 'none';
+  if (cat !== 'ESI') {
+    const sel = document.getElementById('situationEsiFiche');
+    if (sel) sel.value = '';
+  }
+}
+
+document.getElementById('categorie')?.addEventListener('change', toggleSituationEsiFiche);
+document.addEventListener('DOMContentLoaded', () => {
+  toggleSuitesLieuFiche();
+  toggleSituationEsiFiche();
+});
+
 document.getElementById('ficheForm').addEventListener('submit', function(e){
     e.preventDefault();
     const pieces = Array.from(document.querySelectorAll('input[name="piece"]:checked')).map(cb => cb.value);
@@ -1373,7 +1439,33 @@ document.getElementById('ficheForm').addEventListener('submit', function(e){
     const moisVal = document.getElementById('mois').value;
     const anneeVal = document.getElementById('annee').value;
     
-    const fiche = {
+    const categorie = document.getElementById('categorie').value;
+
+    // Suites données (nouveau)
+    const suitesType = document.getElementById('suitesTypeFiche')?.value || '';
+    const suitesLieu = (document.getElementById('suitesLieuFiche')?.value || '').trim();
+
+    if (!suitesType) { alert("Merci de sélectionner les suites données."); return; }
+    if (suitesType === 'TRANSPORT_PAF' && !suitesLieu) { alert("Merci de préciser le lieu du TRANSPORT PAF."); return; }
+
+    const suitesDonnees = (suitesType === 'TRANSPORT_PAF')
+      ? `TRANSPORT PAF ${suitesLieu}`
+      : 'LAISSÉ LIBRE';
+
+    // On conserve aussi la valeur dans l'input historique (compatibilité)
+    const suitesHidden = document.getElementById('suitesDonnees');
+    if (suitesHidden) suitesHidden.value = suitesDonnees;
+
+    // Situation ESI (obligatoire si catégorie ESI)
+    const situationEsi = (categorie === 'ESI')
+      ? (document.getElementById('situationEsiFiche')?.value || '')
+      : '';
+
+    if (categorie === 'ESI' && !situationEsi) {
+      alert("Merci de sélectionner la situation de l'individu (ESI).");
+      return;
+    }
+const fiche = {
         categorie: document.getElementById('categorie').value,
         nom: document.getElementById('nom').value,
         prenom: document.getElementById('prenom').value,
@@ -1387,7 +1479,8 @@ document.getElementById('ficheForm').addEventListener('submit', function(e){
         heure: document.getElementById('heure').value,
         dateIntervention: document.getElementById('dateIntervention').value,
         lieuInterpellation: document.getElementById('lieuInterpellation').value,
-suitesDonnees: document.getElementById('suitesDonnees').value,
+suitesDonnees: suitesDonnees,
+        situationEsi: situationEsi,
  villeDepart: document.getElementById('villeDepart').value,
         paysDepart: document.getElementById('paysDepart').value,
         villeDestination: document.getElementById('villeDestination').value,
@@ -1520,7 +1613,31 @@ document.getElementById('categorie').value = fiche.categorie;
     document.getElementById('heure').value = fiche.heure || '';
     document.getElementById('dateIntervention').value = fiche.dateIntervention || '';
     document.getElementById('lieuInterpellation').value = fiche.lieuInterpellation;
-document.getElementById('suitesDonnees').value = fiche.suitesDonnees || '';
+// Suites données : on remplit le nouveau select + lieu, et on garde l'input historique
+    const s = (fiche.suitesDonnees || '').trim();
+    const up = s.toUpperCase();
+
+    const typeEl = document.getElementById('suitesTypeFiche');
+    const lieuEl = document.getElementById('suitesLieuFiche');
+    const hidEl  = document.getElementById('suitesDonnees');
+
+    if (typeEl) typeEl.value = '';
+    if (lieuEl) lieuEl.value = '';
+    if (hidEl)  hidEl.value  = s;
+
+    if (up.startsWith('TRANSPORT PAF')) {
+      if (typeEl) typeEl.value = 'TRANSPORT_PAF';
+      if (lieuEl) lieuEl.value = s.replace(/^TRANSPORT PAF\s*/i, '').trim();
+    } else if (up.startsWith('LAISSÉ LIBRE') || up.startsWith('LAISSÉ LIBRE')) {
+      if (typeEl) typeEl.value = 'LAISSE_LIBRE';
+    }
+    toggleSuitesLieuFiche();
+
+    // Situation ESI
+    const sitEl = document.getElementById('situationEsiFiche');
+    if (sitEl) sitEl.value = fiche.situationEsi || '';
+    toggleSituationEsiFiche();
+
     document.getElementById('vehicule').value = fiche.vehicule;
     document.getElementById('immatriculation').value = fiche.immatriculation;
     
@@ -1569,25 +1686,35 @@ function genererQrFiche(index) {
   const suites= (fiche.suitesDonnees || "").trim();
   const nat   = (fiche.nationalite || "").trim();
   const sexe  = (fiche.sexe || "").trim();                   // Masculin / Féminin / Autre
+const situationEsi = (fiche.situationEsi || "").trim();  // uniquement utile si cat=ESI
 
   // On évite les ";" dans les champs (remplacés par ",")
   function clean(v) {
-    return v.replace(/;/g, ",");
-  }
+  return String(v ?? "")
+    .replace(/;/g, ",")
+    .replace(/\r?\n/g, " ")
+    .trim();
+}
+
+const situationOut = (String(cat).trim().toUpperCase() === "ESI") ? situationEsi : "";
 
   // 🔗 Format compact attendu par BorderForce :
-  // ID;cat;heure;dateNaissance;lieu;suites;nat;sexe
+  // ID;cat;heure;dateNaissance;lieu;suites;nat;sexe;situationEsi
   const brut =
     "ID;" +
-    [
-      clean(cat),
-      clean(h),
-      clean(dn),
-      clean(lieu),
-      clean(suites),
-      clean(nat),
-      clean(sexe)
-    ].join(";");
+  
+
+[
+  clean(cat),
+  clean(h),
+  clean(dn),
+  clean(lieu),
+  clean(suites),
+  clean(nat),
+  clean(sexe),
+  clean(situationOut)
+].join(";");
+
 
   // 🔒 Encodage URI pour bien gérer accents, apostrophes, retour à la ligne, etc.
   const texteEncode = encodeURIComponent(brut);
